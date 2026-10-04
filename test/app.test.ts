@@ -68,6 +68,7 @@ describe("webhook de WhatsApp", () => {
 
     const params = calls[0];
     expect(params.model).toBe("claude-opus-5-5");
+    expect(params.fallbacks).toBe("default");
     expect(params.messages.at(-1)).toEqual({ role: "user", content: "hola" });
     expect(params.system[1].text).toContain("zona America/Lima");
     expect(params.tools.map((t: any) => t.name)).toContain("create_reminder");
@@ -80,6 +81,16 @@ describe("webhook de WhatsApp", () => {
 
     const user = await findOrCreateUser(db, "+51987654321", "America/Lima");
     expect(await recentChatMessages(db, user.id, 10)).toHaveLength(4);
+  });
+
+  it("con Haiku no manda opciones que ese modelo no acepta", async () => {
+    await start({ claudeModel: "claude-haiku-4-5" });
+    await fetch(`${base}/webhooks/whatsapp`, form({ From: "whatsapp:+51987654321", Body: "hola" }));
+    await waitFor(() => messenger.texts.length === 1);
+    expect(calls[0].model).toBe("claude-haiku-4-5");
+    expect(calls[0].output_config).toBeUndefined();
+    expect(calls[0].fallbacks).toBeUndefined();
+    expect(calls[0].betas).toBeUndefined();
   });
 
   it("ignora números no autorizados", async () => {

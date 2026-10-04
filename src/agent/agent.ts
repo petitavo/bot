@@ -41,6 +41,18 @@ async function dynamicContext(ctx: AgentContext): Promise<string> {
   ].join("\n");
 }
 
+/** Opciones que dependen del modelo: Haiku (el más barato) no acepta `effort` ni `fallbacks`. */
+export function modelOptions(model: string): Partial<Anthropic.Beta.MessageCreateParamsNonStreaming> {
+  if (model.includes("haiku")) return {};
+  return {
+    // Chat rápido: poco "pensamiento" para responder en segundos.
+    output_config: { effort: "low" },
+    // Si el modelo rechaza la petición, la API reintenta con el modelo recomendado.
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+  };
+}
+
 export async function runAgent(
   client: Anthropic,
   ctx: AgentContext,
@@ -64,11 +76,7 @@ export async function runAgent(
   const final = await client.beta.messages.toolRunner({
     model: ctx.config.claudeModel,
     max_tokens: 16000,
-    // Chat rápido: poco "pensamiento" para responder en segundos.
-    output_config: { effort: "low" },
-    // Si el modelo rechaza la petición, la API reintenta con el modelo recomendado.
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
+    ...modelOptions(ctx.config.claudeModel),
     max_iterations: 10,
     system,
     tools: buildTools(ctx),

@@ -5,6 +5,11 @@ import { createPool, migrate } from "./db/index.js";
 import { startScheduler } from "./scheduler.js";
 import { twilioMessenger } from "./whatsapp.js";
 
+// En tu PC lee el archivo .env; en un hosting las variables ya vienen configuradas.
+try {
+  process.loadEnvFile();
+} catch {}
+
 const config = loadConfig();
 const db = createPool(config.databaseUrl);
 await migrate(db);
