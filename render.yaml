@@ -1,0 +1,50 @@
+# Despliegue en Render (https://render.com): "New → Blueprint" y elige este repositorio.
+# Importante: el bot revisa los recordatorios cada 30 s, así que necesita un plan que no se duerma
+# (el plan gratuito de Render apaga el servidor tras 15 min sin visitas y los recordatorios no saldrían).
+services:
+  - type: web
+    name: recordatorios-bot
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: recordatorios-db
+          property: connectionString
+      - key: APP_SECRET
+        generateValue: true
+      - key: NODE_VERSION
+        value: "22"
+      - key: BASE_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_NUMBER
+        sync: false
+      - key: TWILIO_CALL_PERMISSION_CONTENT_SID
+        sync: false
+      - key: TWILIO_REMINDER_CONTENT_SID
+        sync: false
+      - key: ALLOWED_NUMBERS
+        sync: false
+      - key: DEFAULT_TIMEZONE
+        value: America/Lima
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: MICROSOFT_CLIENT_ID
+        sync: false
+      - key: MICROSOFT_CLIENT_SECRET
+        sync: false
+
+databases:
+  - name: recordatorios-db
+    plan: basic-256mb
